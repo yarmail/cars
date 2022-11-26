@@ -1,11 +1,8 @@
 package ru.job4j.cars.repository;
 
 import org.hibernate.HibernateException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import ru.job4j.cars.model.User;
@@ -77,9 +74,8 @@ public class UserRepository {
     public List<User> findAllOrderById() {
         Session session = sf.openSession();
         session.beginTransaction();
-        Comparator<User> comparator = Comparator.comparing(User::getId);
-        List<User> result = session.createQuery("from User", User.class).list();
-        result.sort(comparator);
+        List<User> result = session.createQuery(
+                "from User u order by u.id", User.class).list();
         session.getTransaction().commit();
         session.close();
         return result;
@@ -108,16 +104,11 @@ public class UserRepository {
     public List<User> findByLikeLogin(String key) {
         Session session = sf.openSession();
         session.beginTransaction();
-        List<User> list = session.createQuery(
-                "from User", User.class).list();
+        List<User> result = session.createQuery(
+                "from User u where u.login like :fkey", User.class)
+                        .setParameter("fkey", key).list();
         session.getTransaction().commit();
         session.close();
-        List<User> result = new ArrayList<>();
-        for (User user: list) {
-            if (user.getLogin().contains(key)) {
-                result.add(user);
-            }
-        }
         return result;
     }
 
@@ -129,9 +120,9 @@ public class UserRepository {
     public Optional<User> findByLogin(String login) {
         Session session = sf.openSession();
         session.beginTransaction();
-        Optional<User> user = Optional.ofNullable(
-                session.createQuery("from User as i where i.login = :fLogin", User.class)
-                .setParameter("fLogin", login).list().get(0));
+        Optional<User> user = session.createQuery(
+                "from User as i where i.login = :fLogin", User.class)
+                .setParameter("fLogin", login).uniqueResultOptional();
         session.getTransaction().commit();
         session.close();
         return user;
