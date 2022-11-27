@@ -106,7 +106,7 @@ public class UserRepository {
         session.beginTransaction();
         List<User> result = session.createQuery(
                 "from User u where u.login like :fkey", User.class)
-                        .setParameter("fkey", key).list();
+                        .setParameter("fkey", "'%".concat(key).concat("%'")).list();
         session.getTransaction().commit();
         session.close();
         return result;
